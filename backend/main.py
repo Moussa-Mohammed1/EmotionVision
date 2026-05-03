@@ -1,12 +1,21 @@
 from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 import cv2
 import numpy as np
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.get("/")
 def read_root():
-    return {"message: welcome to emotion recognition app"}
+    return {"message": "welcome to emotion recognition app"}
 
 
 @app.post("/detect-face")
@@ -21,3 +30,4 @@ async def detect_face(file: UploadFile = File(...)):
     return {
         "faces_detected": len(faces)
     }
+
