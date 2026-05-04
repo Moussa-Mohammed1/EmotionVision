@@ -28,6 +28,6 @@ async def detect_face(file: UploadFile = File(...)):
     faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
     return {
-        "faces_detected": len(faces)
+        "message": f"{len(faces)} faces detected"
     }
 
