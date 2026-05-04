@@ -1,7 +1,11 @@
-from fastapi import FastAPI, File, UploadFile
+from pathlib import Path
+
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import cv2
 import numpy as np
+
+from inference import analyze_frame
 
 app = FastAPI()
 
@@ -23,11 +27,16 @@ async def detect_face(file: UploadFile = File(...)):
     content = await file.read()
     nparr = np.frombuffer(content, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    gray= cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    face_cascade = cv2.CascadeClassifier("models/haarcascade_frontalface_default.xml")
-    faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+    if img is None:
+        return {"message": "Could not decode uploaded image"}
+
+    try:
+        faces = analyze_frame(img)
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
 
     return {
-        "message": f"{len(faces)} faces detected"
+        "message": f"{len(faces)} faces detected",
+        "faces": faces,
     }
 
